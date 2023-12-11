@@ -44,3 +44,28 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  update-kubernetes-manifest:
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Update fast-api sample image
+        env:
+          YAML_PATH: 09-cicd/sample-app-manifests/deployment.yaml
+          CONTAINER_NAME: fastapi-sample
+          IMAGE_FULL_NAME: ${{ needs.build-and-push-image.outputs.tags }}
+        run: |
+          yq e -i "(.spec.template.spec.containers[]|select(.name == \"${CONTAINER_NAME}\").image)|=\"${IMAGE_FULL_NAME}\"" ${YAML_PATH}
+          cat ${YAML_PATH}
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: main
+          title: Update fast-api sample image
+          draft: true
+          body: |
+            # Update fast-api sample image
