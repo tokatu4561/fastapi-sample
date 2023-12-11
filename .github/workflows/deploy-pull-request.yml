@@ -1,8 +1,7 @@
 name: deploy-pr
-
 on:
   pull_request:
-  
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
